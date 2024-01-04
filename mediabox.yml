@@ -1,0 +1,536 @@
+services:
+  series_manager:
+    class: MediaBox\Helper\SeriesManager
+    arguments: ["@series_repository", "@series_title_repository", "@series_description_repository"]
+
+  parent_series_manager:
+    class: MediaBox\Helper\ParentSeriesManager
+    arguments: ["@parent_series_repository", "@parent_series_title_repository", "@parent_series_description_repository","@parent_series_genre_repository","@parent_series_subgenre_repository" , "@parent_series_related_media_repository"]
+
+  season_repository_manager:
+    class: MediaBox\Helper\SeasonRepositoryManager
+    arguments: ["@season_repository", "@season_description_repository", "@season_related_media_repository", "@season_genre_repository", "@season_subgenre_repository", "@season_title_repository"]
+
+  content_manager:
+    class: MediaBox\Helper\ContentManager
+    arguments: ["@doctrine.orm.entity_manager","@content_repository", "@content_title_repository", "@content_generic_title_repository", "@content_description_repository", "@content_credit_repository", "@content_genre_repository", "@content_subgenre_repository", "@content_related_media_repository", "@content_country_of_parental_rating_repository"]
+
+  content_credit_manager:
+    class: MediaBox\Helper\ContentCreditManager
+
+  content_genre_list_creator:
+    class: MediaBox\Helper\ContentGenreListCreator
+    arguments: ["@content_genre_repository", "@season_genre_repository", "@parent_series_genre_repository"]
+
+  content.twig_extension:
+    class: MediaBox\Twig\ContentExtension
+    arguments: ["@event_repository", "@content_repository", "@content_related_media_repository", "@content_genre_list_creator", "@season_related_media_repository", "@parent_series_related_media_repository", "@content_credit_manager", "@mediabox.episode_provider", "@mediabox.season_provider", "@epg.blocked_countries_checker", "@translator"]
+    tags:
+      -  { name: twig.extension }
+
+  mediabox.unrelated_program_queue_manager:
+    class: MediaBox\UnrelatedProgram\MediaBoxUnrelatedProgramQueueManager
+    arguments: ["@doctrine.orm.entity_manager","@company_repository", "@company_module_mapper_repository", "@unrelated_program_repository", "@cws_asset_provider", "@asset_creator"]
+
+  mediabox.media_relation_finder:
+    class: MediaBox\UnrelatedProgram\MediaRelationFinder
+    arguments: ["@doctrine.orm.entity_manager", "@mediabox.content_related_media_manager", "@mediabox.parent_series_related_media_manager", "@mediabox.ftp_notification_sender", "@unrelated_program_repository"]
+
+  mediabox.subtitle_relation_finder:
+    class: MediaBox\UnrelatedProgram\SubtitleRelationFinder
+    arguments: ["@doctrine.orm.entity_manager", "@content_related_media_repository", "@mediabox.red_bee_media_api_client"]
+
+  mediabox.content_related_media_manager:
+    class: MediaBox\Helper\ContentRelatedMediaManager
+    arguments: ["@doctrine.orm.entity_manager", "@content_repository", "@content_related_media_repository", "@mediabox.ftp_notification_sender", "@mediabox.red_bee_media_api_client"]
+
+  mediabox.parent_series_creator:
+    class: MediaBox\ParentSeries\ParentSeriesCreator
+    arguments: ["@doctrine.orm.entity_manager", "@parent_series_manager", "@mediabox.parent_series_title_finder"]
+
+  mediabox.parent_series_remover:
+    class: MediaBox\ParentSeries\ParentSeriesRemover
+    arguments: ["@doctrine.orm.entity_manager", "@mediabox.season_remover", "@common.file_remover", "@common.video_remover", "@archived.content_logger"]
+
+  mediabox.parent_series_related_media_manager:
+    class: MediaBox\Helper\ParentSeriesRelatedMediaManager
+    arguments: ["@doctrine.orm.entity_manager", "@parent_series_repository" ,"@parent_series_related_media_repository"]
+
+  mediabox.parent_series_provider:
+    class: MediaBox\ParentSeries\ParentSeriesProvider
+    arguments: ["@epg.blocked_countries_checker", "@parent_series_manager", "@content_repository", "@mediabox.content_provider","@common.thumbnail_url_generator"]
+
+  mediabox.parent_series_list:
+    class: MediaBox\ParentSeries\ParentSeriesList
+    arguments: ["@parent_series_repository", "@parent_series_title_repository", "@mediabox.parent_series_provider"]
+
+  mediabox.parent_series_title_finder:
+    class: MediaBox\ParentSeries\ParentSeriesTitleFinder
+    arguments: ["@parent_series_repository"]
+
+  mediabox.parent_series_archive_manager:
+    class: MediaBox\ParentSeries\ParentSeriesArchiveManager
+    arguments: ["@doctrine.orm.entity_manager", "@mediabox.season_archive_manager"]
+
+  mediabox_parent_series_unarchive_manager:
+    class: MediaBox\ParentSeries\ParentSeriesUnarchiveManager
+    arguments: ["@doctrine.orm.entity_manager", "@mediabox.season_unarchive_manager"]
+
+  mediabox.program_archive_manager:
+    class: MediaBox\Program\ProgramArchiveManager
+    arguments: ["@content_repository", "@mediabox_episode_archive_manager", "@mediabox.parent_series_archive_manager"]
+
+  mediabox.program_unarchive_manager:
+    class: MediaBox\Program\ProgramUnarchiveManager
+    arguments: ["@content_repository", "@mediabox_episode_unarchive_manager", "@mediabox_parent_series_unarchive_manager"]
+
+  mediabox.program_creator:
+    class: MediaBox\Program\ProgramCreator
+    arguments: ["@mediabox.parent_series_creator", "@mediabox.content_creator"]
+
+  mediabox.program_remover:
+    class: MediaBox\Program\ProgramRemover
+    arguments: ["@doctrine.orm.entity_manager", "@content_repository", "@mediabox.content_remover"]
+
+  mediabox.parent_series_related_media_model_manager:
+    class: MediaBox\ParentSeries\ParentSeriesRelatedMediaModelManager
+    arguments: ["@doctrine.orm.entity_manager", "@parent_series_related_media_repository"]
+    parent: common.related_media_manager
+
+  mediabox.season_creator:
+    class: MediaBox\Season\SeasonCreator
+    arguments: ["@doctrine.orm.entity_manager", "@season_repository_manager"]
+
+  mediabox.season_remover:
+    class: MediaBox\Season\SeasonRemover
+    arguments: ["@doctrine.orm.entity_manager", "@mediabox.episode_remover", "@common.file_remover", "@common.video_remover", "@archived.content_logger"]
+
+  mediabox.season_archive_manager:
+    class: MediaBox\Season\SeasonArchiveManager
+    arguments: ["@doctrine.orm.entity_manager", "@mediabox_episode_archive_manager"]
+
+  mediabox.season_unarchive_manager:
+    class: MediaBox\Season\SeasonUnarchiveManager
+    arguments: ["@doctrine.orm.entity_manager", "@mediabox_episode_unarchive_manager"]
+
+  mediabox.season_provider:
+    class: MediaBox\Season\SeasonProvider
+    arguments: ["@season_repository_manager", "@mediabox.parent_series_provider", "@common.thumbnail_url_generator"]
+
+  mediabox.season_related_media_model_manager:
+    class: MediaBox\Season\SeasonRelatedMediaModelManager
+    arguments: ["@doctrine.orm.entity_manager", "@season_related_media_repository"]
+    parent: common.related_media_manager
+
+  mediabox.episode_creator:
+    class: MediaBox\Episode\EpisodeCreator
+    arguments: ["@doctrine.orm.entity_manager", "@episode_repository", "@mediabox.content_creator"]
+
+  mediabox.episode_provider:
+    class: MediaBox\Episode\EpisodeProvider
+    arguments: ["@mediabox.content_provider", "@content_repository"]
+
+  mediabox.episode_remover:
+    class: MediaBox\Episode\EpisodeRemover
+    arguments: ["@doctrine.orm.entity_manager", "@content_repository", "@mediabox.content_remover", "@archived.content_logger"]
+
+  mediabox.episode_list:
+    class: MediaBox\Episode\EpisodeList
+    arguments: ["@mediabox.episode_provider", "@episode_repository"]
+
+  mediabox_episode_archive_manager:
+    class: MediaBox\Episode\EpisodeArchiveManager
+    arguments: ["@doctrine.orm.entity_manager", "@event_repository", "@mediabox.program_creator", "@vod.publish_remover","@event_change_repository"]
+
+  mediabox_episode_unarchive_manager:
+    class: MediaBox\Episode\EpisodeUnArchiveManager
+    arguments: ["@doctrine.orm.entity_manager"]
+
+  mediabox.content_creator:
+    class: MediaBox\Content\ContentCreator
+    arguments: ["@doctrine.orm.entity_manager", "@content_manager"]
+
+  mediabox.content_provider:
+    class: MediaBox\Content\ContentProvider
+    arguments: ["@content_manager", "@mediabox.content_poster", "@series_title_repository", "@parent_series_title_repository", "@content_genre_repository", "@epg.blocked_countries_checker"]
+
+  mediabox.content_remover:
+    class: MediaBox\Content\ContentRemover
+    arguments: ["@doctrine.orm.entity_manager", "@material_repository", "@event_change_repository", "@epg.event_copy_queue_repository", "@vod.publish_remover","@common.file_remover", "@common.video_remover"]
+
+  mediabox.content_poster:
+    class: MediaBox\Content\ContentPoster
+    arguments: ["@content_related_media_repository", "@season_related_media_repository", "@parent_series_related_media_repository", "@common.thumbnail_url_generator"]
+
+  mediabox.content_related_media_model_manager:
+    class: MediaBox\Content\ContentRelatedMediaModelManager
+    arguments: ["@doctrine.orm.entity_manager", "@content_related_media_repository"]
+    parent: common.related_media_manager
+
+  mediabox.mtg_parent_series_creator:
+    class: MediaBox\Client\Mtg\MtgParentSeriesCreator
+    arguments: ["@mediabox.parent_series_title_finder", "@mediabox.parent_series_creator", "@mediabox.mtg_parent_series_related_media_creator"]
+
+  mediabox.mtg_season_creator:
+    class: MediaBox\Client\Mtg\MtgSeasonCreator
+    arguments: ["@season_repository", "@mediabox.season_creator", "@mediabox.mtg_season_related_media_creator"]
+
+  mediabox.mtg_season_related_media_creator:
+    class: MediaBox\Client\Mtg\MtgSeasonRelatedMediaCreator
+    arguments: ["@doctrine.orm.entity_manager", "@season_related_media_repository", "@common.thumbnail_helper", "@common.s3_file_uploader", "@common.image_data_reader", "@common.file_remover"]
+
+  mediabox.mtg_content_creator:
+    class: MediaBox\Client\Mtg\MtgContentCreator
+    arguments: ["@doctrine.orm.entity_manager", "@mediabox.parent_series_title_finder", "@content_manager", "@mediabox.mtg_content_related_media_creator", "@mediabox.mtg_parent_series_creator", "@mediabox.mtg_season_creator", "@mediabox.episode_creator", "@mediabox.program_creator", "@mediabox.mtg_content_credit_creator", "@episode_repository"]
+
+  mediabox.mtg_content_credit_creator:
+    class: MediaBox\Client\Mtg\MtgContentCreditCreator
+    arguments: ["@doctrine.orm.entity_manager", "@content_credit_repository"]
+
+  mediabox.mtg_content_related_media_creator:
+    class: MediaBox\Client\Mtg\MtgContentRelatedMediaCreator
+    arguments: ["@doctrine.orm.entity_manager", "@content_related_media_repository", "@common.thumbnail_helper", "@common.s3_file_uploader", "@common.image_data_reader", "@common.file_remover"]
+
+  mediabox.mtg_parent_series_related_media_creator:
+    class: MediaBox\Client\Mtg\MtgParentSeriesRelatedMediaCreator
+    arguments: ["@doctrine.orm.entity_manager", "@parent_series_related_media_repository", "@common.thumbnail_helper", "@common.s3_file_uploader", "@common.image_data_reader", "@common.file_remover"]
+
+  mediabox.viasat_import:
+    class: MediaBox\Client\Viasat\Import
+    arguments: ["@doctrine.orm.entity_manager", "@mediabox.mtg_content_creator"]
+
+  mediabox.dnf_content_creator:
+    class: MediaBox\Client\DNF\DNFContentCreator
+    arguments: ["@mediabox.dnf_parent_series_creator", "@mediabox.dnf_season_creator", "@mediabox.episode_creator", "@mediabox.program_creator", "@mediabox.dnf_content_related_media_creator"]
+
+  mediabox.dnf_content_related_media_creator:
+    class: MediaBox\Client\DNF\DNFContentRelatedMediaCreator
+    arguments: ["@doctrine.orm.entity_manager", "@content_related_media_repository", "@common.thumbnail_helper", "@common.s3_file_uploader", "@cws_asset_provider", "@common.image_data_reader"]
+
+  mediabox.dnf_parent_series_creator:
+    class: MediaBox\Client\DNF\DNFParentSeriesCreator
+    arguments: ["@mediabox.parent_series_creator"]
+
+  mediabox.dnf_season_creator:
+    class: MediaBox\Client\DNF\DNFSeasonCreator
+    arguments: ["@mediabox.season_creator"]
+
+  mediabox.hbo_episode_creator:
+    class: MediaBox\Client\HBO\HBOContentCreator
+    arguments: ["@doctrine.orm.entity_manager", "@season_repository", "@mediabox.episode_creator", "@mediabox.program_creator", "@content_credit_repository", "@content_genre_repository"]
+
+  mediabox.hbo_parent_series_related_media_creator:
+    class: MediaBox\Client\HBO\HBOParentSeriesRelatedMediaCreator
+    arguments: ["@doctrine.orm.entity_manager", "@common_related_media_repository_manager","@season_repository" ]
+
+  mediabox.hbo_season_related_media_creator:
+    class: MediaBox\Client\HBO\HBOSeasonRelatedMediaCreator
+    arguments: ["@doctrine.orm.entity_manager", "@common_related_media_repository_manager", "@mediabox.hbo_image_queue_creator","@s3_client"]
+
+  mediabox.hbo_content_related_media_creator:
+    class: MediaBox\Client\HBO\HBOContentRelatedMediaCreator
+    arguments: ["@doctrine.orm.entity_manager", "@common_related_media_repository_manager", "@mediabox.hbo_image_queue_creator","@s3_client"]
+
+  mediabox.hbo_image_queue_creator:
+    class: MediaBox\Client\HBO\HBOMediaBoxImageImportQueueHelper
+    arguments: ["@doctrine.orm.entity_manager", "@mediabox_image_import_qeueu_repository", "@company_repository","@s3_client" , "@common.file_helper", "@kernel", "@common.thumbnail_helper", "@common.s3_file_uploader" ]
+
+  mediabox.hbo_image_import_queue_manager:
+    class: MediaBox\Client\HBO\HBOImageImportQueueManager
+    arguments: [ "@doctrine.orm.entity_manager" , "@common.file_helper", "@common.image_data_reader", "@content_related_media_repository", "@season_related_media_repository",  "@mediabox.hbo_content_related_media_creator", "@mediabox.hbo_image_queue_creator", "@mediabox.hbo_season_related_media_creator", "@mediabox.hbo_parent_series_related_media_creator"]
+
+  mediabox.dng_content_creator:
+    class: MediaBox\Client\DiscoveryGermany\DNGContentCreator
+    arguments: ["@mediabox.dng_parent_series_creator", "@mediabox.dng_season_creator", "@mediabox.episode_creator", "@mediabox.program_creator", "@content_repository"]
+
+  mediabox.dng_parent_series_creator:
+    class: MediaBox\Client\DiscoveryGermany\DNGParentSeriesCreator
+    arguments: ["@mediabox.parent_series_creator", "@mediabox.parent_series_title_finder"]
+
+  mediabox.dng_season_creator:
+    class: MediaBox\Client\DiscoveryGermany\DNGSeasonCreator
+    arguments: ["@mediabox.season_creator"]
+
+  mediabox.sony_content_creator:
+    class: MediaBox\Client\Sony\SonyContentCreator
+    arguments: ["@doctrine.orm.entity_manager", "@mediabox.sony_parent_series_creator", "@mediabox.sony_season_creator", "@mediabox.sony_content_credit_creator", "@mediabox.episode_creator", "@mediabox.program_creator", "@episode_repository", "@content_manager", "@parent_series_manager"]
+
+  mediabox.sony_content_credit_creator:
+    class: MediaBox\Client\Sony\SonyContentCreditCreator
+    arguments: ["@doctrine.orm.entity_manager", "@content_credit_repository"]
+
+  mediabox.sony_season_creator:
+    class: MediaBox\Client\Sony\SonySeasonCreator
+    arguments: ["@mediabox.season_creator", "@season_repository", "@season_description_repository"]
+
+  mediabox.sony_parent_series_creator:
+    class: MediaBox\Client\Sony\SonyParentSeriesCreator
+    arguments: ["@mediabox.parent_series_creator"]
+
+  mediabox.discovery_networks_content_creator:
+    class: MediaBox\Client\DiscoveryNetworks\DNContentCreator
+    arguments: ["@doctrine.orm.entity_manager", "@mediabox.discovery_networks_parent_series_creator", "@mediabox.discovery_networks_season_creator", "@mediabox.episode_creator", "@mediabox.discovery_networks_content_credit_creator","@mediabox.program_creator", "@episode_repository", "@content_manager", "@mediabox.parent_series_title_finder", "@mediabox.event_queue_manager"]
+
+  mediabox.discovery_networks_content_credit_creator:
+    class: MediaBox\Client\DiscoveryNetworks\DNContentCreditCreator
+    arguments: ["@doctrine.orm.entity_manager", "@content_credit_repository"]
+
+  mediabox.discovery_networks_season_creator:
+    class: MediaBox\Client\DiscoveryNetworks\DNSeasonCreator
+    arguments: ["@mediabox.season_creator", "@season_repository", "@season_description_repository"]
+
+  mediabox.discovery_networks_parent_series_creator:
+    class: MediaBox\Client\DiscoveryNetworks\DNParentSeriesCreator
+    arguments: ["@mediabox.parent_series_creator", "@mediabox.won_id_manager"]
+
+  mediabox.won_id_manager:
+    class: MediaBox\Client\DiscoveryNetworks\WONIdManager
+    arguments: ["@content_id_manager.ContentIdMapper"]
+
+  mediabox.ebs_id_manager:
+    class: MediaBox\Client\DiscoveryNetworks\EBSIdManager
+    arguments: ["@content_id_manager.ContentIdMapper"]
+
+  mediabox.ebs_content_creator:
+    class: MediaBox\Client\EBS\EBSContentCreator
+    arguments: ["@mediabox.parent_series_title_finder", "@mediabox.ebs_parent_series_creator", "@mediabox.ebs_season_creator", "@episode_repository", "@mediabox.episode_provider", "@mediabox.episode_creator", "@content_repository", "@mediabox.content_provider", "@mediabox.program_creator"]
+
+  mediabox.ebs_season_creator:
+    class: MediaBox\Client\EBS\EBSSeasonCreator
+    arguments: ["@season_repository", "@mediabox.season_creator"]
+
+  mediabox.ebs_parent_series_creator:
+    class: MediaBox\Client\EBS\EBSParentSeriesCreator
+    arguments: ["@mediabox.parent_series_title_finder", "@mediabox.parent_series_creator"]
+
+  mediabox.ebs2_content_creator:
+    class: MediaBox\Client\EBS\EBS2ContentCreator
+    arguments: ["@doctrine.orm.entity_manager", "@mediabox.parent_series_title_finder", "@content_manager", "@mediabox.ebs2_content_related_media_creator", "@mediabox.ebs2_parent_series_creator", "@mediabox.ebs2_season_creator", "@mediabox.episode_creator", "@mediabox.program_creator", "@episode_repository", "@mediabox.event_queue_manager"]
+
+  mediabox.ebs2_content_related_media_creator:
+    class: MediaBox\Client\EBS\EBS2ContentRelatedMediaCreator
+    arguments: ["@doctrine.orm.entity_manager", "@content_related_media_repository", "@common.thumbnail_helper", "@common.s3_file_uploader", "@common.image_data_reader", "@common.file_remover"]
+
+  mediabox.ebs2_parent_series_creator:
+    class: MediaBox\Client\EBS\EBS2ParentSeriesCreator
+    arguments: ["@mediabox.parent_series_creator", "@mediabox.ebs2_parent_series_related_media_creator", "@mediabox.parent_series_title_finder"]
+
+  mediabox.ebs2_parent_series_related_media_creator:
+    class: MediaBox\Client\EBS\EBS2ParentSeriesRelatedMediaCreator
+    arguments: ["@doctrine.orm.entity_manager", "@common.thumbnail_helper", "@common.s3_file_uploader", "@common.image_data_reader", "@common.file_remover", "@common_related_media_repository_manager"]
+
+  mediabox.ebs2_season_creator:
+    class: MediaBox\Client\EBS\EBS2SeasonCreator
+    arguments: ["@season_repository", "@mediabox.season_creator", "@mediabox.ebs2_season_related_media_creator"]
+
+  mediabox.ebs2_season_related_media_creator:
+    class: MediaBox\Client\EBS\EBS2SeasonRelatedMediaCreator
+    arguments: ["@doctrine.orm.entity_manager", "@season_related_media_repository", "@common.thumbnail_helper", "@common.s3_file_uploader", "@common.image_data_reader", "@common.file_remover"]
+
+  mediabox.tv4_content_creator:
+    class: MediaBox\Client\TV4\TV4ContentCreator
+    arguments: ["@doctrine.orm.entity_manager", "@mediabox.tv4_parent_series_creator", "@mediabox.tv4_season_creator", "@mediabox.episode_creator", "@mediabox.program_creator",  "@mediabox.tv4_content_credit_creator", "@content_title_repository", "@content_repository"]
+
+  mediabox.tv4_content_related_media_creator:
+    class: MediaBox\Client\TV4\TV4ContentRelatedMediaCreator
+    arguments: ["@doctrine.orm.entity_manager", "@content_related_media_repository", "@common.thumbnail_helper", "@common.s3_file_uploader", "@common.image_data_reader", "@common.file_remover"]
+
+  mediabox.tv4_content_credit_creator:
+    class: MediaBox\Client\TV4\TV4ContentCreditCreator
+    arguments: ["@doctrine.orm.entity_manager", "@content_credit_repository"]
+
+  mediabox.tv4_season_creator:
+    class: MediaBox\Client\TV4\TV4SeasonCreator
+    arguments: ["@season_repository", "@mediabox.season_creator"]
+
+  mediabox.tv4_season_related_media_creator:
+    class: MediaBox\Client\TV4\TV4SeasonRelatedMediaCreator
+    arguments: ["@doctrine.orm.entity_manager", "@season_related_media_repository", "@common.thumbnail_helper", "@common.s3_file_uploader", "@common.image_data_reader", "@common.file_remover"]
+
+  mediabox.tv4_parent_series_creator:
+    class: MediaBox\Client\TV4\TV4ParentSeriesCreator
+    arguments: ["@mediabox.parent_series_creator"]
+
+  mediabox.tv4_parent_series_related_media_creator:
+    class: MediaBox\Client\TV4\TV4ParentSeriesRelatedMediaCreator
+    arguments: ["@doctrine.orm.entity_manager", "@parent_series_related_media_repository", "@common.thumbnail_helper", "@common.s3_file_uploader", "@common.image_data_reader", "@common.file_remover"]
+
+  mediabox.yle_content_creator:
+    class: MediaBox\Client\Yle\YleContentCreator
+    arguments: ["@mediabox.yle_parent_series_creator", "@mediabox.yle_season_creator", "@mediabox.episode_creator", "@mediabox.program_creator"]
+
+  mediabox.yle_content_related_media_creator:
+    class: MediaBox\Client\Yle\YleContentRelatedMediaCreator
+    arguments: ["@doctrine.orm.entity_manager", "@common.thumbnail_helper", "@common.s3_file_uploader", "@common.image_data_reader", "@s3_client", "@kernel"]
+
+  mediabox.yle_parent_series_creator:
+    class: MediaBox\Client\Yle\YleParentSeriesCreator
+    arguments: ["@mediabox.parent_series_creator"]
+
+  mediabox.yle_season_creator:
+    class: MediaBox\Client\Yle\YleSeasonCreator
+    arguments: ["@mediabox.season_creator"]
+
+  mediabox.red_bee_media_api_client:
+    class: MediaBox\Client\TV4\RedBeeMediaAPIClient
+
+  mediabox.euro_sport_content_creator:
+    class: MediaBox\Client\EuroSport\EuroSportContentCreator
+    arguments: ["@mediabox.program_creator", "@mediabox.euro_sport_content_related_media_creator", "@mediabox.parent_series_title_finder", "@content_manager"]
+
+  mediabox.euro_sport_content_related_media_creator:
+    class: MediaBox\Client\EuroSport\EuroSportContentRelatedMediaCreator
+    arguments: ["@doctrine.orm.entity_manager", "@content_related_media_repository", "@common.thumbnail_helper", "@common.s3_file_uploader", "@common.image_data_reader", "@common.file_remover"]
+
+  mediabox.dnn_picture_park_client:
+    class: MediaBox\Client\DiscoveryNetworks\Norway\PicturePark\Client
+    arguments: ["@kernel"]
+
+  mediabox.dnn_content_related_media_creator:
+    class: MediaBox\Client\DiscoveryNetworks\Norway\DNNContentRelatedMediaCreator
+    arguments: ["@doctrine.orm.entity_manager", "@kernel", "@content_related_media_repository", "@common.s3_file_uploader", "@common.image_data_reader", "@common.file_helper", "@liip_imagine.controller", "@mediabox.dnn_picture_park_client"]
+
+  mediabox.dnn_season_related_media_creator:
+    class: MediaBox\Client\DiscoveryNetworks\Norway\DNNSeasonRelatedMediaCreator
+    arguments: ["@doctrine.orm.entity_manager", "@kernel", "@common.s3_file_uploader", "@common.image_data_reader", "@common.file_helper", "@liip_imagine.controller", "@mediabox.dnn_picture_park_client", "@season_related_media_repository"]
+
+  mediabox.content_fetch_helper:
+    class: MediaBox\Helper\ContentFetchHelper
+    arguments: ["@mediabox.content_provider", "@content_credit_manager", "@mediabox.season_provider", "@mediabox.parent_series_provider", "@translator"]
+
+  mediabox.ftp_notification_sender:
+    class: MediaBox\Helper\FtpNotificationSender
+    arguments: ["@email_client", "@translator", "@common.email_url_generator", "@parent_series_title_repository", "@common.admin_host_url_creator"]
+
+  mediabox.unrelated_program_model_manager:
+    class: MediaBox\UnrelatedProgram\UnrelatedProgramModelManager
+    arguments: ["@doctrine.orm.entity_manager", "@unrelated_program_repository"]
+    parent: common.related_media_manager
+
+  mediabox.language_manager:
+    class: MediaBox\Helper\LanguageManager
+    arguments: ["@user.manager", "@user_company_module_settings_repository"]
+
+  s3_upload_helper:
+    class: CS\MainBundle\Helper\S3UploadHelper
+    arguments: ["@doctrine.orm.entity_manager", "@aws_client", "@cws_helper", "@util_helper", "@s3_client"]
+
+  mediabox.event_queue_manager:
+    class: MediaBox\Sync\MediaBoxEventQueueManager
+    arguments: ["@doctrine.orm.entity_manager", "@user.manager", "@company_repository"]
+
+  mediabox.sync_parent_series:
+    class: MediaBox\Sync\MediaBoxSyncParentSeries
+    arguments: ["@doctrine.orm.entity_manager", "@parent_series_manager", "@mediabox.parent_series_provider", "@mediabox.parent_series_creator", "@mediabox.sync_parent_series_related_media"]
+
+  mediabox.sync_parent_series_related_media:
+    class: MediaBox\Sync\MediaBoxSyncParentSeriesRelatedMedia
+    arguments: ["@doctrine.orm.entity_manager", "@parent_series_related_media_repository"]
+
+  mediabox.sync_season:
+    class: MediaBox\Sync\MediaBoxSyncSeason
+    arguments: ["@doctrine.orm.entity_manager", "@mediabox.parent_series_provider", "@mediabox.parent_series_creator",  "@season_repository_manager", "@mediabox.season_provider", "@mediabox.season_creator", "@mediabox.sync_season_related_media"]
+
+  mediabox.sync_season_related_media:
+    class: MediaBox\Sync\MediaBoxSyncSeasonRelatedMedia
+    arguments: ["@doctrine.orm.entity_manager", "@season_related_media_repository"]
+
+  mediabox.sync_episode:
+    class: MediaBox\Sync\MediaBoxSyncEpisode
+    arguments: ["@doctrine.orm.entity_manager", "@mediabox.parent_series_provider", "@mediabox.parent_series_creator", "@mediabox.season_provider", "@mediabox.season_creator","@content_repository", "@content_credit_repository", "@content_genre_repository", "@mediabox.episode_provider", "@mediabox.episode_creator", "@mediabox.sync_parent_series_related_media", "@mediabox.sync_season_related_media", "@mediabox.sync_content_related_media"]
+
+  mediabox.sync_program:
+    class: MediaBox\Sync\MediaBoxSyncProgram
+    arguments: ["@doctrine.orm.entity_manager", "@content_repository", "@content_credit_repository", "@content_genre_repository", "@parent_series_repository", "@mediabox.parent_series_provider", "@mediabox.program_creator", "@mediabox.sync_content_related_media"]
+
+  mediabox.sync_block_country:
+    class: MediaBox\Sync\MediaBoxSyncBlockCountry
+    arguments: ["@doctrine.orm.entity_manager", "@company_repository", "@mediabox.sync_parent_series", "@mediabox.sync_season", "@mediabox.sync_episode", "@mediabox.sync_program", "@user.manager"]
+
+  mediabox.sync_content_related_media:
+    class: MediaBox\Sync\MediaBoxSyncContentRelatedMedia
+    arguments: ["@doctrine.orm.entity_manager", "@content_related_media_repository"]
+
+  linkIt.parent_series_creator:
+    class: MediaBox\LinkIt\ParentSeriesCreator
+    arguments: ["@mediabox.parent_series_creator"]
+
+  linkIt.series_creator:
+    class: MediaBox\LinkIt\SeriesCreator
+    arguments: ["@mediabox.parent_series_title_finder", "@mediabox.season_creator"]
+
+  linkIt.episode_creator:
+    class: MediaBox\LinkIt\EpisodeCreator
+    arguments: ["@doctrine.orm.entity_manager", "@mediabox.parent_series_title_finder", "@season_repository", "@episode_repository", "@mediabox.episode_creator", "@content_credit_repository"]
+
+  linkIt.program_creator:
+    class: MediaBox\LinkIt\ProgramCreator
+    arguments: ["@doctrine.orm.entity_manager", "@mediabox.program_creator", "@content_credit_repository"]
+
+  linkIt.trailer_creator:
+    class: MediaBox\LinkIt\TrailerCreator
+    arguments: ["@doctrine.orm.entity_manager", "@content_manager", "@parent_series_manager"]
+
+  archived.content_logger:
+    class: MediaBox\Helper\ArchivedContentLogger
+    arguments: ["@doctrine.orm.entity_manager", "@parent_series_title_repository", "@archived.content_log_repository"]
+
+  mediabox.ebs_nent_content_creator:
+    class: MediaBox\Client\EBS\EBSNentContentCreator
+    arguments: ["@mediabox.ebs_nent_parent_series_creator", "@mediabox.ebs_nent_season_creator", "@mediabox.program_creator", "@mediabox.episode_creator"]
+
+  mediabox.ebs_nent_parent_series_creator:
+    class: MediaBox\Client\EBS\EBSNentParentSeriesCreator
+    arguments: ["@mediabox.parent_series_creator"]
+
+  mediabox.ebs_nent_season_creator:
+    class: MediaBox\Client\EBS\EBSNentSeasonCreator
+    arguments: ["@mediabox.season_creator"]
+
+  mediabox.ebs_nent_content_related_media_creator:
+    class: MediaBox\Client\EBS\EBSNentContentRelatedMediaCreator
+    arguments: ["@doctrine.orm.entity_manager", "@content_related_media_repository", "@common.thumbnail_helper", "@common.s3_file_uploader", "@common.image_data_reader", "@common.file_remover"]
+
+  mediabox.svt_content_creator:
+    class: MediaBox\Client\SVT\SVTContentCreator
+    arguments: [ "@doctrine.orm.entity_manager", "@season_repository", "@mediabox.svt_episode_creator", "@mediabox.program_creator", "@content_credit_repository", "@content_genre_repository", "@content_repository", "@epg.svt_helper" ]
+
+  mediabox.svt_episode_creator:
+    class: MediaBox\Client\SVT\SVTEpisodeCreator
+    arguments: [ "@doctrine.orm.entity_manager", "@episode_repository", "@mediabox.content_creator" ]
+
+  mediabox.svt_parent_series_related_media_creator:
+    class: MediaBox\Client\SVT\SVTParentSeriesRelatedMediaCreator
+    arguments: [ "@doctrine.orm.entity_manager", "@parent_series_related_media_repository", "@common.thumbnail_helper", "@common.s3_file_uploader", "@common.image_data_reader", "@common.file_remover" ]
+
+  mediabox.svt_season_related_media_creator:
+    class: MediaBox\Client\SVT\SVTSeasonRelatedMediaCreator
+    arguments: [ "@doctrine.orm.entity_manager", "@season_related_media_repository", "@common.thumbnail_helper", "@common.s3_file_uploader", "@common.image_data_reader", "@common.file_remover" ]
+
+  mediabox.svt_content_related_media_creator:
+    class: MediaBox\Client\SVT\SVTContentRelatedMediaCreator
+    arguments: [ "@doctrine.orm.entity_manager", "@content_related_media_repository", "@common.thumbnail_helper", "@common.s3_file_uploader", "@common.image_data_reader", "@common.file_remover" ]
+
+  mediabox.svt_material_creator:
+    class: MediaBox\Client\SVT\SVTMaterialCreator
+    arguments: [ "@doctrine.orm.entity_manager", "@epg.material_repository_manager" ]
+
+  mediabox.amc_content_creator:
+    class: MediaBox\Client\AMC\AmcContentCreator
+    arguments: ["@mediabox.amc_parent_series_creator", "@mediabox.amc_season_creator", "@mediabox.amc_episode_creator", "@mediabox.program_creator", "@mediabox.amc_content_credit_creator" ]
+
+  mediabox.amc_episode_creator:
+    class: MediaBox\Client\AMC\AmcEpisodeCreator
+    arguments: ["@mediabox.episode_creator" ]
+
+  mediabox.amc_parent_series_creator:
+    class: MediaBox\Client\AMC\AmcParentSeriesCreator
+    arguments: ["@mediabox.parent_series_creator" ]
+
+  mediabox.amc_season_creator:
+    class: MediaBox\Client\AMC\AmcSeasonCreator
+    arguments: ["@mediabox.season_creator" ]
+
+  mediabox.amc_content_credit_creator:
+    class: MediaBox\Client\AMC\AmcContentCreditCreator
+    arguments: ["@doctrine.orm.entity_manager", "@content_credit_repository" ]

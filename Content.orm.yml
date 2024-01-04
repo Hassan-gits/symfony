@@ -1,0 +1,183 @@
+CS\MainBundle\Entity\Content:
+  type: entity
+  table: Content
+  repositoryClass: MediaBox\Repository\ContentRepository
+  indexes:
+    content_content_key_index:
+      columns: [ content_key ]
+    content_content_Id_Ref_index:
+      columns: [ content_id_ref ]
+    content_media_id_index:
+      columns: [ media_id ]
+  fields:
+    id:
+      id: true
+      type: integer
+      unsigned: false
+      nullable: false
+      generator:
+        strategy: IDENTITY
+    contentKey:
+      type: string
+      length: 255
+      fixed: false
+      nullable: false
+      column: content_key
+    contentIdRef:
+      type: string
+      length: 255
+      nullable: true
+      column: content_id_ref
+    externalSourceId:
+      type: string
+      length: 255
+      nullable: true
+      column: external_source_id
+    productionYear:
+      type: string
+      length: 255
+      nullable: true
+      column: production_year
+    productionCompany:
+      type: string
+      length: 255
+      nullable: true
+      column: production_company
+    website:
+      type: string
+      length: 255
+      nullable: true
+      column: website
+    mediaId:
+      type: string
+      length: 255
+      nullable: true
+      column: media_id
+    mediaVersion:
+      type: string
+      length: 255
+      nullable: true
+      column: media_version
+    dvbGenre1:
+      type: string
+      length: 255
+      nullable: true
+      column: dvb_genre1
+    dvbGenre2:
+      type: string
+      length: 255
+      nullable: true
+      column: dvb_genre2
+    tag:
+      type: string
+      length: 255
+      nullable: true
+      column: tag
+    countryOfOrigins:
+      type: string
+      length: 255
+      nullable: true
+      column: country_of_origins
+    parentalRating:
+      type: string
+      length: 255
+      nullable: true
+      column: parental_rating
+    clientUniqueId:
+      type: string
+      length: 255
+      nullable: true
+      column: client_unique_id
+    duration:
+      type: string
+      length: 255
+      nullable: true
+      column: duration
+    houseNumber:
+      type: string
+      length: 255
+      nullable: true
+      column: house_number
+    data:
+      type: text
+      nullable: true
+      column: data
+    linkItData:
+      type: text
+      nullable: true
+      column: link_it_data
+    extraInformation:
+      type: string
+      length: 255
+      nullable: true
+      column: extra_information
+    wideScreen:
+      type: boolean
+      nullable: true
+      column: is_wide_screen
+    isArchived:
+      type: boolean
+      nullable: true
+      column: is_archived
+    masterContentKey:
+      type: string
+      length: 255
+      nullable: true
+      column: master_content_key
+    firstAirDate:
+      type: datetime
+      nullable: true
+      column: first_air_date
+    netDuration:
+      type: string
+      length: 255
+      nullable: true
+      column: net_duration
+    autoUnpublishedDate:
+      type: datetime
+      nullable: true
+      column: auto_unpublished_date
+  oneToMany:
+    titles:
+      targetEntity: ContentTitle
+      mappedBy: content
+    genericTitles:
+      targetEntity: ContentGenericTitle
+      mappedBy: content
+    descriptions:
+      targetEntity: ContentDescription
+      mappedBy: content
+    credits:
+      targetEntity: ContentCredit
+      mappedBy: content
+    genres:
+      targetEntity: CS\MainBundle\Entity\ContentGenre
+      mappedBy: content
+    countryOfParentalRatings:
+      targetEntity: CS\MainBundle\Entity\ContentCountryOfParentalRating
+      mappedBy: content
+    relatedFiles:
+      targetEntity: CS\MainBundle\Entity\ContentRelatedMedia
+      mappedBy: content
+  manyToOne:
+    parentSeries:
+      targetEntity: CS\MainBundle\Entity\ParentSeries
+      joinColumn:
+        name: parent_series_id
+        referencedColumnName: id
+    series:
+      targetEntity: Series
+      joinColumn:
+        name: series_id
+        referencedColumnName: id
+    season:
+      targetEntity: Season
+      joinColumn:
+        name: season_id
+        referencedColumnName: id
+    episode:
+      targetEntity: Episode
+      inversedBy: content
+      joinColumn:
+        name: episode_id
+        referencedColumnName: id

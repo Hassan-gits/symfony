@@ -1,0 +1,28 @@
+services:
+   system_notification.payload_generator:
+       class: Microservice\SystemNotificationApp\Helper\PayloadGenerator
+       arguments: ['@monolog.logger.notification', '@s3_client','%is_dev_env%', '%dev_env_email%', '%public_asset_bucket%']
+
+   system_notification.client:
+       class: Microservice\SystemNotificationApp\Client
+       arguments: ['@system_notification.payload_generator', '@aws_sns_client', '@monolog.logger.notification', '%system_notification_sns_topic_arn%']
+
+   marketing_notification.payload_generator:
+       class: Microservice\MarketingNotificationApp\Helper\PayloadGenerator
+       arguments: ['@monolog.logger.marketing', '%is_dev_env%', '%dev_env_email%', '%marketing_notification_ses_configuration_set_name%']
+
+   marketing_notification.client:
+       class: Microservice\MarketingNotificationApp\Client
+       arguments: ['@marketing_notification.payload_generator', '@aws_sqs_helper', '@monolog.logger.marketing', '%marketing_notification_queue_url%']
+
+   content_id_manager.client:
+     class: Microservice\ContentIdManager\Client
+     arguments: [ "%content_id_manager_api_url%" ]
+
+   content_id_manager.ContentIdMapper:
+     class: Microservice\ContentIdManager\Helper\ContentIdMapper
+     arguments: [ "@content_id_manager.client", "@email_client" ]
+
+   cws_api_client:
+       class: Microservice\CwsApiClient\Client
+       arguments: [ "%cwsHost%" ]
